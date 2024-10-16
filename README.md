@@ -16,8 +16,7 @@
 - [ ] シークワーズ：生成したゲームを画面に表示する
 - [ ] シークワーズ答え探し：回答結果を画面に表示する
 - [ ] 生成したシークワーズをPDFでダウンロードできるようにする
-- [*] Web公開する環境構築(Vercel)  
-  - [Link](https://work-seek-words-creator.vercel.app/)
+- [*] Web公開する環境構築(Vercel)
 
 # システム概要
 - Vue.js
