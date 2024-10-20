@@ -1,1 +1,39 @@
 @import './base.css';
+
+* {
+  user-select: none;
+}
+
+body,
+html {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+#image-wallpaper {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  margin: 0;
+  z-index: -1;
+}
+
+#str-title {
+  margin-top: 1%;
+  font-size: 3em;
+  text-align: center;
+}
+
+#space {
+  position: absolute;
+  display: block;
+  top: 16%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  height: 75vh;
+  font-size: larger;
+  text-align: center;
+}
