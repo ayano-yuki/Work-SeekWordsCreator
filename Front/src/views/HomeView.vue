@@ -12,11 +12,17 @@
 		<div v-if="fileContent" class="file-content">
 			<pre>{{ fileContent }}</pre>
 		</div>
+
+		<div>
+			<IconButton name="この語彙で生成！" path="/icon/running.svg" next="/"></IconButton>
+		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
+
+import IconButton from '@/components/IconButton.vue';
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const isFileSelected = ref(false);

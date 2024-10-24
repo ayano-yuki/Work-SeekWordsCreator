@@ -1,1 +1,7 @@
-/* color palette from <https://github.com/vuejs/theme> */
+:root{
+    /* button */
+    --color-button-background: #f0b5a4;
+    --color-button-hover: #ee7785;
+    --color-button-text: #0f0f0f;
+    --color-button-icon: #fff;
+  }
