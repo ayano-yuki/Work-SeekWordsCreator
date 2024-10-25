@@ -1,16 +1,23 @@
 <template>
-	<h1 id="str-title">Please upload the test file(*.txt)</h1>
+	<h1 id="str-title">
+		Please upload the vocabulary
+		<a href="/template.txt" download="TEMPLATE.txt"> (*.txt) </a>
+	</h1>
 
 	<div id="space" style="display: flex; flex-direction: column; align-items: center;">
 		<div id="js-selectFile">
 			<input id="js-upload" type="file" style="display:none" ref="fileInput" accept=".txt"
 				@change="handleFileChange">
-			<button class="original_btn" @click="handleFileSelect">ファイルを選択</button>
-			<span class="icon" :class="{ select: isFileSelected }">{{ fileName || '未選択' }}</span>
+			<button class="original_btn" @click="handleFileSelect">Select File</button>
+			<span class="icon" :class="{ select: isFileSelected }">{{ fileName || 'Not selected' }}</span>
 		</div>
-		
+
 		<div v-if="fileContent" class="file-content">
 			<pre>{{ fileContent }}</pre>
+		</div>
+
+		<div v-if="fileContent" style="margin-top: 2%;">
+			<IconButton name="Generate with this vocabulary!" icon_path="/icon/running.svg" next="/create"></IconButton>
 		</div>
 	</div>
 </template>
@@ -18,10 +25,16 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 
+import IconButton from '@/components/IconButton.vue';
+import { vocabulary } from '@/stores/counter';
+
 const fileInput = ref<HTMLInputElement | null>(null);
 const isFileSelected = ref(false);
 const fileName = ref<string | null>(null);
 const fileContent = ref<string | null>(null);
+const vocabularyArray = ref<string[]>([]);
+
+const VocabularyController = vocabulary();
 
 const handleFileSelect = (): void => {
 	if (fileInput.value) {
@@ -39,12 +52,16 @@ const handleFileChange = (event: Event): void => {
 
 		const reader = new FileReader();
 		reader.onload = () => {
-			fileContent.value = null
-			fileContent.value = reader.result as string;
+			const text = reader.result as string;
+			fileContent.value = text;
+			vocabularyArray.value = text.split('\n').map(line => line.trim()).filter(line => line !== '');
+			// console.log(vocabularyArray.value);
+			VocabularyController.addVocabularys( Array.from(new Set(vocabularyArray.value)) );
+
 		};
 		reader.readAsText(file);
 	} else {
-		alert('Please upload a .txt file');
+		alert('Please upload a valid .txt file');
 		isFileSelected.value = false;
 		fileName.value = null;
 		fileContent.value = null;
@@ -58,7 +75,6 @@ body {
 	text-align: left;
 }
 
-/* オリジナルボタン */
 .original_btn {
 	border: 1px solid #ddd;
 	padding: 10px;
@@ -70,7 +86,6 @@ body {
 	font-size: 16px;
 }
 
-/* 未選択時のアイコン */
 .icon {
 	font-size: 16px;
 	margin: 0 10px 0 15px;
@@ -81,19 +96,16 @@ body {
 	display: inline-block;
 }
 
-/* 選択時のアイコン */
 .icon.select {
 	background: #ff5050;
 	color: #fff;
 }
 
-/* ファイル名 */
 .filename {
 	display: inline-block;
 	font-size: 16px;
 }
 
-/* ファイルの内容を表示するスタイル */
 .file-content {
 	margin-top: 20px;
 	padding: 15px;
