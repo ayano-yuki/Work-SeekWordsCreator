@@ -1,20 +1,25 @@
 <template>
-	<h1 id="str-title">Please upload the test file(*.txt)</h1>
+	<h1 id="str-title">
+		Please upload the test file
+		<a href="/template.txt" download="template.txt">
+			(*.txt)
+		</a>
+	</h1>
 
 	<div id="space" style="display: flex; flex-direction: column; align-items: center;">
 		<div id="js-selectFile">
 			<input id="js-upload" type="file" style="display:none" ref="fileInput" accept=".txt"
 				@change="handleFileChange">
-			<button class="original_btn" @click="handleFileSelect">ファイルを選択</button>
-			<span class="icon" :class="{ select: isFileSelected }">{{ fileName || '未選択' }}</span>
+			<button class="original_btn" @click="handleFileSelect">Select File</button>
+			<span class="icon" :class="{ select: isFileSelected }">{{ fileName || 'Not selected' }}</span>
 		</div>
-		
+
 		<div v-if="fileContent" class="file-content">
 			<pre>{{ fileContent }}</pre>
 		</div>
 
-		<div>
-			<IconButton name="この語彙で生成！" path="/icon/running.svg" next="/"></IconButton>
+		<div v-if="fileContent" style="margin-top: 2%;">
+			<IconButton name="Generate with this vocabulary!" icon_path="/icon/running.svg" next="/create"></IconButton>
 		</div>
 	</div>
 </template>

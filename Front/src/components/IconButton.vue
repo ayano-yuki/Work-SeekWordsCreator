@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useRouter } from 'vue-router'
+import { useRouter } from 'vue-router';
 import { ref, onMounted } from 'vue';
 
 // Define props type
@@ -18,23 +18,20 @@ interface Props {
   next?: string;
 }
 
-const router = useRouter()
-const props = defineProps<Props>()
-const icon_path = ref<string>("")
+const router = useRouter();
+const props = defineProps<Props>();
+const icon_path = ref<string>("");
 
 const nextPage = (): void => {
     if (props.next === undefined) {
-        alert("Undefined Pages Error: Please contact the developer")
+        alert("Undefined Pages Error: Please contact the developer");
     } else {
-        router.push(props.next)
+        router.push(props.next);
     }
 }
 
 onMounted(() => {
-    icon_path.value = props.icon_path ?? "/icon/undefined.svg"
-    if (props.icon_path === undefined) {
-        console.log(123)
-    }
+    icon_path.value = props.icon_path ?? "/icon/undefined.svg";
 });
 </script>
 
