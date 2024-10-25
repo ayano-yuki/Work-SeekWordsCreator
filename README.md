@@ -20,3 +20,4 @@
 
 # システム概要
 - Vue.js
+- TypeScript

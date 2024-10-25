@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シークワーズ</title>
+    <style>
+        .word-search-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 5px;
+        }
+
+        .grid-row {
+            display: contents;
+        }
+
+        .grid-cell {
+            border: 1px solid #000;
+            padding: 10px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .highlight {
+            color: red; /* 赤色で強調表示 */
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<h2>シークワーズ</h2>
+<div id="word-search" class="word-search-grid"></div>
+<h3>見つける単語</h3>
+<ul id="word-list"></ul>
+
+<script>
+    const words = ['あか', 'さかな', 'ねこ', 'たぬき'];
+    const size = 9;
+    const grid = Array.from({ length: size }, () => Array(size).fill(''));
+    const hiraganaChars = 'あいうえおかきくけこさしすせそたちつてと';
+
+    function placeWord(word, row, col, direction) {
+        const [dRow, dCol] = direction;
+
+        for (let i = 0; i < word.length; i++) {
+            const newRow = row + i * dRow;
+            const newCol = col + i * dCol;
+
+            if (newRow < 0 || newRow >= size || newCol < 0 || newCol >= size || (grid[newRow][newCol] && grid[newRow][newCol] !== word[i])) {
+                return false;
+            }
+        }
+
+        for (let i = 0; i < word.length; i++) {
+            const newRow = row + i * dRow;
+            const newCol = col + i * dCol;
+            grid[newRow][newCol] = word[i];
+        }
+
+        return true;
+    }
+
+    function addWordToGrid(word) {
+        const directions = [
+            [1, 0],  // 縦
+            [0, 1],  // 横
+            [1, 1],  // 斜め右下
+            [1, -1]  // 斜め左下
+        ];
+
+        for (let attempt = 0; attempt < 100; attempt++) {
+            const row = Math.floor(Math.random() * size);
+            const col = Math.floor(Math.random() * size);
+            const direction = directions[Math.floor(Math.random() * directions.length)];
+
+            if (placeWord(word, row, col, direction)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function generateHiraganaWordSearch(words) {
+        for (const word of words) {
+            if (!addWordToGrid(word)) {
+                throw new Error(`Could not place word: ${word}`);
+            }
+        }
+
+        for (let row = 0; row < size; row++) {
+            for (let col = 0; col < size; col++) {
+                if (!grid[row][col]) {
+                    const randomIndex = Math.floor(Math.random() * hiraganaChars.length);
+                    grid[row][col] = hiraganaChars[randomIndex];
+                }
+            }
+        }
+    }
+
+    function isWordCell(row, col) {
+        for (const word of words) {
+            if (checkWordInGrid(word, row, col)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function checkWordInGrid(word, row, col) {
+        const directions = [
+            [1, 0],  // 縦
+            [0, 1],  // 横
+            [1, 1],  // 斜め右下
+            [1, -1]  // 斜め左下
+        ];
+
+        for (const [dRow, dCol] of directions) {
+            let found = true;
+            for (let i = 0; i < word.length; i++) {
+                const newRow = row + i * dRow;
+                const newCol = col + i * dCol;
+
+                if (newRow < 0 || newRow >= size || newCol < 0 || newCol >= size || grid[newRow][newCol] !== word[i]) {
+                    found = false;
+                    break;
+                }
+            }
+            if (found) return true;
+        }
+        return false;
+    }
+
+    // グリッドを生成
+    generateHiraganaWordSearch(words);
+
+    // グリッドを表示
+    const wordSearchElement = document.getElementById('word-search');
+    for (let row = 0; row < size; row++) {
+        const gridRow = document.createElement('div');
+        gridRow.className = 'grid-row';
+        for (let col = 0; col < size; col++) {
+            const cell = document.createElement('span');
+            cell.className = 'grid-cell' + (isWordCell(row, col) ? ' highlight' : '');
+            cell.textContent = grid[row][col];
+            gridRow.appendChild(cell);
+        }
+        wordSearchElement.appendChild(gridRow);
+    }
+
+    // 単語リストを表示
+    const wordListElement = document.getElementById('word-list');
+    words.forEach(word => {
+        const listItem = document.createElement('li');
+        listItem.textContent = word;
+        wordListElement.appendChild(listItem);
+    });
+</script>
+
+</body>
+</html>
