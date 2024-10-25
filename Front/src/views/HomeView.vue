@@ -56,7 +56,7 @@ const handleFileChange = (event: Event): void => {
 			fileContent.value = text;
 			vocabularyArray.value = text.split('\n').map(line => line.trim()).filter(line => line !== '');
 			// console.log(vocabularyArray.value);
-			VocabularyController.addVocabularys( vocabularyArray.value );
+			VocabularyController.addVocabularys( Array.from(new Set(vocabularyArray.value)) );
 
 		};
 		reader.readAsText(file);
