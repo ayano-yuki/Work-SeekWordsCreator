@@ -1,9 +1,7 @@
 <template>
 	<h1 id="str-title">
-		Please upload the test file
-		<a href="/template.txt" download="template.txt">
-			(*.txt)
-		</a>
+		Please upload the vocabulary
+		<a href="/template.txt" download="TEMPLATE.txt"> (*.txt) </a>
 	</h1>
 
 	<div id="space" style="display: flex; flex-direction: column; align-items: center;">
@@ -28,11 +26,15 @@
 import { ref } from 'vue';
 
 import IconButton from '@/components/IconButton.vue';
+import { vocabulary } from '@/stores/counter';
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const isFileSelected = ref(false);
 const fileName = ref<string | null>(null);
 const fileContent = ref<string | null>(null);
+const vocabularyArray = ref<string[]>([]);
+
+const VocabularyController = vocabulary();
 
 const handleFileSelect = (): void => {
 	if (fileInput.value) {
@@ -50,12 +52,16 @@ const handleFileChange = (event: Event): void => {
 
 		const reader = new FileReader();
 		reader.onload = () => {
-			fileContent.value = null
-			fileContent.value = reader.result as string;
+			const text = reader.result as string;
+			fileContent.value = text;
+			vocabularyArray.value = text.split('\n').map(line => line.trim()).filter(line => line !== '');
+			// console.log(vocabularyArray.value);
+			VocabularyController.addVocabularys( vocabularyArray.value );
+
 		};
 		reader.readAsText(file);
 	} else {
-		alert('Please upload a .txt file');
+		alert('Please upload a valid .txt file');
 		isFileSelected.value = false;
 		fileName.value = null;
 		fileContent.value = null;
@@ -69,7 +75,6 @@ body {
 	text-align: left;
 }
 
-/* オリジナルボタン */
 .original_btn {
 	border: 1px solid #ddd;
 	padding: 10px;
@@ -81,7 +86,6 @@ body {
 	font-size: 16px;
 }
 
-/* 未選択時のアイコン */
 .icon {
 	font-size: 16px;
 	margin: 0 10px 0 15px;
@@ -92,19 +96,16 @@ body {
 	display: inline-block;
 }
 
-/* 選択時のアイコン */
 .icon.select {
 	background: #ff5050;
 	color: #fff;
 }
 
-/* ファイル名 */
 .filename {
 	display: inline-block;
 	font-size: 16px;
 }
 
-/* ファイルの内容を表示するスタイル */
 .file-content {
 	margin-top: 20px;
 	padding: 15px;
