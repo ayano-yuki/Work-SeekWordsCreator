@@ -54,10 +54,13 @@ const handleFileChange = (event: Event): void => {
 		reader.onload = () => {
 			const text = reader.result as string;
 			fileContent.value = text;
-			vocabularyArray.value = text.split('\n').map(line => line.trim()).filter(line => line !== '');
-			// console.log(vocabularyArray.value);
-			VocabularyController.addVocabularys( Array.from(new Set(vocabularyArray.value)) );
 
+			// 行ごとに分割し、スペースを削除してトリミング
+			vocabularyArray.value = text.split('\n')
+				.map(line => line.replace(/\s+/g, '').trim()) // スペースを削除し、トリム
+				.filter(line => line !== ''); // 空行をフィルタリング
+
+			VocabularyController.addVocabularys(Array.from(new Set(vocabularyArray.value)));
 		};
 		reader.readAsText(file);
 	} else {
