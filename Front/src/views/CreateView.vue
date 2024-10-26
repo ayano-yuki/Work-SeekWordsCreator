@@ -1,14 +1,24 @@
 <template>
     <h1 id="str-title">Seek Words</h1>
 
-    <div id="space" style="display: flex; flex-direction: column; align-items: flex-start;">
-        <table>
-            <tr v-for="(row, rowIndex) in wordSearchGrid" :key="rowIndex">
-                <td v-for="(cell, cellIndex) in row" :key="cellIndex">
-                    {{ cell }}
-                </td>
-            </tr>
-        </table>
+    <div id="space" style="display: flex; flex-direction: row; align-items: flex-start;">
+        <div>
+            <table>
+                <tr v-for="(row, rowIndex) in wordSearchGrid" :key="rowIndex">
+                    <td v-for="(cell, cellIndex) in row" :key="cellIndex">
+                        {{ cell }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Right-side container for the selected words -->
+        <div style="margin-left: 10%;">
+            <h2>Words Used:</h2>
+            <ul>
+                <div v-for="(word, index) in vocabularyArray" :key="index">{{ word }}</div>
+            </ul>
+        </div>
     </div>
 </template>
 
@@ -72,7 +82,6 @@ function generateHiraganaWordSearch(words: string[]): string[][] {
             if (!grid[row][col]) {
                 const randomIndex = Math.floor(Math.random() * hiraganaChars.length);
                 grid[row][col] = hiraganaChars[randomIndex];
-                grid[row][col] = "＊";
             }
         }
     }
@@ -92,15 +101,20 @@ onMounted(() => {
 </script>
 
 <style scoped>
+#space {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: flex-start; /* Align items at the start vertically */
+}
+
 table {
-    float: left;
     border-collapse: collapse;
     background-color: #ffffff;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
     overflow: hidden;
     margin-top: 20px;
-    border:1px solid #333;
+    border: 1px solid #333;
 }
 
 td {
@@ -111,12 +125,6 @@ td {
     font-weight: bold;
     color: #555555;
     border-radius: 5px;
-    border:1px solid #333;
-}
-
-h1 {
-    font-family: 'Arial', sans-serif;
-    font-size: 24px;
-    margin-bottom: 20px;
+    border: 1px solid #333;
 }
 </style>
