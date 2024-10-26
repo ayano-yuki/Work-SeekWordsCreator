@@ -25,9 +25,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { vocabulary } from '@/stores/counter';
+import seedrandom from 'seedrandom';
 
 const vocabularyArray = ref<string[]>([]);
 const wordSearchGrid = ref<string[][]>([]);
+
+// Set the random seed to 256
+const rng = seedrandom(256);
+// const rng = seedrandom( Math.floor(Math.random() * 256) );
 
 const VocabularyController = vocabulary();
 
@@ -61,9 +66,9 @@ function generateHiraganaWordSearch(words: string[]): string[][] {
             [1, -1]
         ];
         for (let attempt = 0; attempt < 100; attempt++) {
-            const row = Math.floor(Math.random() * size);
-            const col = Math.floor(Math.random() * size);
-            const direction = directions[Math.floor(Math.random() * directions.length)];
+            const row = Math.floor(rng() * size);
+            const col = Math.floor(rng() * size);
+            const direction = directions[Math.floor(rng() * directions.length)];
             if (placeWord(word, row, col, direction)) {
                 return true;
             }
@@ -80,8 +85,9 @@ function generateHiraganaWordSearch(words: string[]): string[][] {
     for (let row = 0; row < size; row++) {
         for (let col = 0; col < size; col++) {
             if (!grid[row][col]) {
-                const randomIndex = Math.floor(Math.random() * hiraganaChars.length);
+                const randomIndex = Math.floor(rng() * hiraganaChars.length);
                 grid[row][col] = hiraganaChars[randomIndex];
+                // grid[row][col] = "＊";
             }
         }
     }
@@ -92,7 +98,7 @@ function generateHiraganaWordSearch(words: string[]): string[][] {
 onMounted(() => {
     vocabularyArray.value = VocabularyController.getVocabularys().filter(word => /^[\u3040-\u309F]{2,5}$/.test(word));
     const selectedWords = vocabularyArray.value
-        .sort(() => 0.5 - Math.random())
+        .sort(() => 0.5 - rng())
         .slice(0, 9);
 
     wordSearchGrid.value = generateHiraganaWordSearch(selectedWords);
