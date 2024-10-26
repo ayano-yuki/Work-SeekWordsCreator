@@ -26,11 +26,9 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-
 import seedrandom from 'seedrandom';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-
 import { vocabulary } from '@/stores/counter';
 import IconButton from '@/components/IconButton.vue';
 
@@ -38,8 +36,8 @@ const vocabularyArray = ref<string[]>([]);
 const wordSearchGrid = ref<string[][]>([]);
 const loading = ref(false);
 
-// Set the random seed to 256
-const rng = seedrandom(256);
+// Initialize seedrandom with a dynamic seed based on current time
+const rng = seedrandom(Date.now().toString());
 
 const VocabularyController = vocabulary();
 
@@ -67,10 +65,10 @@ function generateHiraganaWordSearch(words: string[]): string[][] {
 
     const addWordToGrid = (word: string): boolean => {
         const directions: [number, number][] = [
-            [1, 0],
-            [0, 1],
-            [1, 1],
-            [1, -1]
+            [1, 0],   // Down
+            [0, 1],   // Right
+            [1, 1],   // Down-Right (Diagonal)
+            [1, -1]   // Down-Left (Diagonal)
         ];
         for (let attempt = 0; attempt < 100; attempt++) {
             const row = Math.floor(rng() * size);
@@ -85,7 +83,7 @@ function generateHiraganaWordSearch(words: string[]): string[][] {
 
     for (const word of words) {
         if (!addWordToGrid(word)) {
-            throw new Error(`Could not place word: ${word}`);
+            console.warn(`Could not place word: ${word}`); // Changed to warning for user-friendly feedback
         }
     }
 
@@ -101,54 +99,48 @@ function generateHiraganaWordSearch(words: string[]): string[][] {
     return grid;
 }
 
-const downloadPDF = () => {
-    loading.value = true; // Set loading to true when starting the download
+const downloadPDF = async (): Promise<void> => {
+    loading.value = true;
 
-    // Use setTimeout to allow the DOM to update
-    setTimeout(() => {
-        const element = document.getElementById('space'); // Capture the main container
+    // Allow the DOM to update before capturing
+    setTimeout(async () => {
+        const element = document.getElementById('space'); 
         if (!element) {
             console.error('Element not found!');
-            loading.value = false; // Set loading to false on error
+            loading.value = false; 
             return;
         }
 
-        // Use html2canvas to take a screenshot of the element
-        html2canvas(element, { scale: 2 }).then((canvas) => {
+        try {
+            const canvas = await html2canvas(element, { scale: 2 });
             const imgData = canvas.toDataURL('image/jpeg');
             
-            // Create a new jsPDF instance
             const pdf = new jsPDF('landscape', 'mm', 'a4');
-
-            // Calculate the aspect ratio for fitting the image into the PDF
             const imgWidth = 297; // A4 landscape width in mm
-            const pageHeight = pdf.internal.pageSize.height;
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
             const heightLeft = imgHeight;
 
-            // Add the image to the PDF
-            pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
-            
-            // Check if the image height exceeds the page height
-            if (heightLeft >= pageHeight) {
-                let position = 0;
+            // Calculate the vertical position to center the image
+            const verticalOffset = (pdf.internal.pageSize.height - imgHeight) / 2;
 
-                // Split the image if it's too tall for the page
+            pdf.addImage(imgData, 'JPEG', (pdf.internal.pageSize.width - imgWidth) / 2, verticalOffset, imgWidth, imgHeight);
+            if (heightLeft >= pdf.internal.pageSize.height) {
+                let position = verticalOffset; // Start from the calculated vertical offset
                 while (heightLeft >= 0) {
-                    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-                    position -= pageHeight;
+                    pdf.addImage(imgData, 'JPEG', (pdf.internal.pageSize.width - imgWidth) / 2, position, imgWidth, imgHeight);
+                    position -= pdf.internal.pageSize.height;
                 }
             }
 
-            // Save the PDF
             pdf.save('SeekWords.pdf');
-            loading.value = false; // Set loading to false after the PDF is saved
-        }).catch((error) => {
+        } catch (error) {
             console.error('Error generating PDF:', error);
-            loading.value = false; // Ensure loading is reset on error
-        });
-    }, 0); // Execute the inner function immediately
+        } finally {
+            loading.value = false;
+        }
+    }, 0);
 };
+
 
 onMounted(() => {
     vocabularyArray.value = VocabularyController.getVocabularys().filter(word => /^[\u3040-\u309F]{2,5}$/.test(word));
