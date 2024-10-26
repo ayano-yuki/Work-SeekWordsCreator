@@ -23,11 +23,12 @@ const props = defineProps<Props>();
 const icon_path = ref<string>("");
 
 const nextPage = (): void => {
-    if (props.next === undefined) {
-        alert("Undefined Pages Error: Please contact the developer");
-    } else {
-        router.push(props.next);
+    // Check if the next property is defined
+    if (!props.next) {
+        console.warn("Undefined Pages Error: Please contact the developer");
+        return; // Do not proceed if next is undefined
     }
+    router.push(props.next);
 }
 
 onMounted(() => {
