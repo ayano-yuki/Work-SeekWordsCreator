@@ -13,7 +13,10 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.2",
     "pinia": "^2.2.4",
+    "seedrandom": "^3.0.5",
     "vue": "^3.5.11",
     "vue-router": "^4.4.5"
   },

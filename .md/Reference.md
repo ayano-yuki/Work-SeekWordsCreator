@@ -13,3 +13,9 @@
   - 「shims.d.ts」を追加して、VueファイルをTypeScriptとして認識させる
 
 参考：[TypeScriptのファイルでVueファイルをimportしようとすると「Cannot find module '~~~~~' or its corresponding type declarations.」のエラーが出てしまう。](https://qiita.com/raratyurara/items/3ec1d78bebb76bde641a)
+
+### Could not find a declaration file for module 'seedrandom'.ts-plugin(7016)
+- TypeScript未対応のモジュールをimportしたから
+  - 「shims.d.ts」を追加して、モジュールをany型として認識させる
+
+参考：[TypeScript未対応のモジュールをimportするときのエラー対策](https://qiita.com/ichironagata/items/58855c5108f2cbcd18b7)
