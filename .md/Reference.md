@@ -6,8 +6,13 @@
 ## ホーム画面
 - [input type="file"をオリジナルのデザインに変更](https://qiita.com/comy/items/a9eac1de51f9fb1dfcca)
 
+## API
+- [PythonでMeCabを使って形態素解析入門](https://frkz.jp/study/python/mecab)
+- [MeCabとPythonを使用した日本語テキスト分析入門](https://qiita.com/finders/items/7474deca81fd8f6cda07)
+- [Renderで簡単なwebアプリをデプロイしてみた](https://qiita.com/kizataka/items/10693e87f726a95499e4)
+- [GPTs+FastAPI+Renderで機能性♾️チャットボット開発](https://qiita.com/milukyna/items/16493a90d5ed1c516ffd)
 
-## Error Response
+## Front Error Response
 ### Cannot find module '@/components/XXX.vue' or its corresponding type declarations.ts-plugin(2307)
 - main.tsがApp.vueをTypeScriptとして扱えないことが原因で発生する
   - 「shims.d.ts」を追加して、VueファイルをTypeScriptとして認識させる
