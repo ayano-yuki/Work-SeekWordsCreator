@@ -149,6 +149,7 @@ onMounted(() => {
         .slice(0, 9);
 
     wordSearchGrid.value = generateHiraganaWordSearch(selectedWords);
+    console.log(wordSearchGrid.value)
 });
 </script>
 
