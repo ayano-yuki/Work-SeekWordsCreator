@@ -23,26 +23,38 @@ class SeekWords(BaseModel):
 def extract_patterns(board: List[List[str]], pattern_size: int) -> List[str]:
     patterns = []
     n = len(board)
-    
-    # Horizontal patterns
+
+    # Horizontal patterns (left to right and right to left)
     for row in range(n):
         for col in range(n - pattern_size + 1):
+            # Left to right
             patterns.append("".join(board[row][col:col + pattern_size]))
+            # Right to left
+            patterns.append("".join(board[row][col + pattern_size - 1:col - 1:-1]))
 
-    # Vertical patterns
+    # Vertical patterns (top to bottom and bottom to top)
     for col in range(n):
         for row in range(n - pattern_size + 1):
+            # Top to bottom
             patterns.append("".join(board[row + i][col] for i in range(pattern_size)))
+            # Bottom to top
+            patterns.append("".join(board[row + pattern_size - 1 - i][col] for i in range(pattern_size)))
 
-    # Diagonal patterns (top-left to bottom-right)
+    # Diagonal patterns (top-left to bottom-right and bottom-right to top-left)
     for row in range(n - pattern_size + 1):
         for col in range(n - pattern_size + 1):
+            # Top-left to bottom-right
             patterns.append("".join(board[row + i][col + i] for i in range(pattern_size)))
+            # Bottom-right to top-left
+            patterns.append("".join(board[row + pattern_size - 1 - i][col + pattern_size - 1 - i] for i in range(pattern_size)))
 
-    # Diagonal patterns (top-right to bottom-left)
+    # Diagonal patterns (top-right to bottom-left and bottom-left to top-right)
     for row in range(n - pattern_size + 1):
         for col in range(pattern_size - 1, n):
+            # Top-right to bottom-left
             patterns.append("".join(board[row + i][col - i] for i in range(pattern_size)))
+            # Bottom-left to top-right
+            patterns.append("".join(board[row + pattern_size - 1 - i][col - pattern_size + 1 + i] for i in range(pattern_size)))
 
     return patterns
 
@@ -84,5 +96,4 @@ async def noun_extraction(datas: List[SeekWords]) -> Dict[str, List[str]]:
                 # Filter valid nouns
                 valid_nouns = [line.split("\t")[0] for line in result if is_valid_noun(line, text)]
                 all_extracted_words.update(valid_nouns)  # Update the set with valid nouns
-
-    return {"extracted_words": list(all_extracted_words)}  # Convert set back to list for response
+    return {"words": list(all_extracted_words)}  # Convert set back to list for response

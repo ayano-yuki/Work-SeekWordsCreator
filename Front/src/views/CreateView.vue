@@ -11,35 +11,35 @@
                 </tr>
             </table>
         </div>
-        
-        <!-- Right-side container for the selected words -->
-        <div style="margin-left: 10%;">
+
+        <div style="margin-left: 10%;" v-if="!loading">
             <h2>Words Used:</h2>
-            <ul>
-                <div v-for="(word, index) in vocabularyArray" :key="index">{{ word }}</div>
+            <ul class="vocabulary-list">
+                <li v-for="(word, index) in vocabularyArray" :key="index">{{ word }}</li>
             </ul>
 
-            <IconButton v-if="!loading" name="Download PDF" icon_path="/icon/running.svg" @click="downloadPDF"></IconButton>
+            <IconButton name="Download PDF" icon_path="/icon/running.svg" @click="downloadPDF" />
         </div>
     </div>
 </template>
 
+
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import axios from 'axios';
 import seedrandom from 'seedrandom';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { vocabulary } from '@/stores/counter';
+import { vocabulary, config_data } from '@/stores/counter';
 import IconButton from '@/components/IconButton.vue';
 
 const vocabularyArray = ref<string[]>([]);
 const wordSearchGrid = ref<string[][]>([]);
 const loading = ref(false);
 
-// Initialize seedrandom with a dynamic seed based on current time
 const rng = seedrandom(Date.now().toString());
-
 const VocabularyController = vocabulary();
+const APIurl = config_data().get_api_url();
 
 function generateHiraganaWordSearch(words: string[]): string[][] {
     const size = 9;
@@ -65,10 +65,7 @@ function generateHiraganaWordSearch(words: string[]): string[][] {
 
     const addWordToGrid = (word: string): boolean => {
         const directions: [number, number][] = [
-            [1, 0],   // Down
-            [0, 1],   // Right
-            [1, 1],   // Down-Right (Diagonal)
-            [1, -1]   // Down-Left (Diagonal)
+            [1, 0], [0, 1], [1, 1], [1, -1]
         ];
         for (let attempt = 0; attempt < 100; attempt++) {
             const row = Math.floor(rng() * size);
@@ -83,7 +80,7 @@ function generateHiraganaWordSearch(words: string[]): string[][] {
 
     for (const word of words) {
         if (!addWordToGrid(word)) {
-            console.warn(`Could not place word: ${word}`); // Changed to warning for user-friendly feedback
+            console.warn(`Could not place word: ${word}`);
         }
     }
 
@@ -99,22 +96,46 @@ function generateHiraganaWordSearch(words: string[]): string[][] {
     return grid;
 }
 
+async function sendBoardDataToAPI(board: string[][], size: number) {
+    const data = [{
+        size: size,
+        board: board
+    }];
+    console.log("Sending data:", data);  // 送信データの確認
+
+    try {
+        const response = await axios.post(`${APIurl}/parse`, data, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        console.log("API response:", response.data);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("Error response:", error.response?.data);
+        } else {
+            console.error("Unknown error:", error);
+        }
+    }
+}
+
 const downloadPDF = async (): Promise<void> => {
     loading.value = true;
 
     // Allow the DOM to update before capturing
     setTimeout(async () => {
-        const element = document.getElementById('space'); 
+        const element = document.getElementById('space');
         if (!element) {
             console.error('Element not found!');
-            loading.value = false; 
+            loading.value = false;
             return;
         }
 
         try {
             const canvas = await html2canvas(element, { scale: 2 });
             const imgData = canvas.toDataURL('image/jpeg');
-            
+
             const pdf = new jsPDF('landscape', 'mm', 'a4');
             const imgWidth = 297; // A4 landscape width in mm
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
@@ -141,23 +162,67 @@ const downloadPDF = async (): Promise<void> => {
     }, 0);
 };
 
+const downloadVocabulary = (vocabularyArray: any) => {
+    const textContent = vocabularyArray.join('\n'); // 配列を改行で結合
+    const blob = new Blob([textContent], { type: 'text/plain' }); // テキストファイルを作成
+    const url = URL.createObjectURL(blob); // BlobのURLを作成
 
-onMounted(() => {
+    const link = document.createElement('a'); // ダウンロード用リンクを作成
+    link.href = url;
+    link.download = 'vocabulary.txt'; // ファイル名を指定
+    document.body.appendChild(link); // リンクをDOMに追加
+    link.click(); // リンクをクリックしてダウンロードを開始
+    document.body.removeChild(link); // リンクを削除
+    URL.revokeObjectURL(url); // BlobのURLを解放
+};
+
+onMounted(async () => {
+    await initializeBoardData();
+});
+
+async function initializeBoardData() {
+    const size = 9;
+    const board = wordSearchGrid.value;
+
+    // Get words from the existing vocabulary
     vocabularyArray.value = VocabularyController.getVocabularys().filter(word => /^[\u3040-\u309F]{2,5}$/.test(word));
     const selectedWords = vocabularyArray.value
         .sort(() => 0.5 - rng())
         .slice(0, 9);
 
+    // Generate the word search
     wordSearchGrid.value = generateHiraganaWordSearch(selectedWords);
-    console.log(wordSearchGrid.value)
-});
+
+    // Send board data to the API and process the response
+    sendBoardDataToAPI(wordSearchGrid.value, size)
+        .then(apiResponse => {
+            // Ensure the response contains the expected words
+            const apiWords = (apiResponse.words || []).filter((word: string) => /^[\u3040-\u309F]{2,5}$/.test(word));
+
+            // Combine existing vocabulary with API data, ensuring no duplicates
+            const combinedWords = new Set([...vocabularyArray.value, ...apiWords]);
+
+            // Log the state for debugging
+            console.log("Vocabulary Array (updated):", vocabularyArray.value);
+            console.log("API Words:", apiWords);
+            console.log("Combined Words Set:", combinedWords);
+
+            // Update vocabularyArray with combinedWords
+            vocabularyArray.value = Array.from(combinedWords); // This line ensures the UI updates
+        })
+        .catch(error => {
+            console.error("Error sending board data to API:", error);
+        });
+}
 </script>
 
 <style scoped>
 #space {
     display: flex;
-    justify-content: center; /* Center horizontally */
-    align-items: flex-start; /* Align items at the start vertically */
+    justify-content: center;
+    /* Center horizontally */
+    align-items: flex-start;
+    /* Align items at the start vertically */
 }
 
 table {
@@ -179,5 +244,33 @@ td {
     color: #555555;
     border-radius: 5px;
     border: 1px solid #333;
+}
+
+.vocabulary-list {
+    list-style-type: none;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(100px, 1fr));
+    gap: 10px;
+    max-height: 300px;
+    max-width: 150%;
+    overflow-y: auto;
+    background-color: var(--color-button-icon);
+    border: 2px solid #ffb3ba;
+    border-radius: 12px;
+    padding-right: 15px;
+}
+
+.vocabulary-list li {
+    padding: 8px 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    transition: transform 0.2s ease;
+}
+
+.vocabulary-list li:hover {
+    transform: scale(1.05);
+    background-color: var(--color-button-background);
 }
 </style>
