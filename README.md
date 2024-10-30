@@ -26,7 +26,9 @@
 - TypeScript
 
 # デプロイ環境
-- Vercel（https://work-seek-words-creator.vercel.app/）
+- Vercel
+  - https://work-seek-words-creator.vercel.app/
   - フロントエンドのデプロイに使用
-- Render（https://work-seekwordscreator.onrender.com）
+- Render
+  - https://work-seekwordscreator.onrender.com
   - Web APIのデプロイに使用
