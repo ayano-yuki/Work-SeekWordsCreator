@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+pydantic
+mecab-python3
+unidic-lite
