@@ -18,7 +18,8 @@
                 <li v-for="(word, index) in vocabularyArray" :key="index">{{ word }}</li>
             </ul>
 
-            <IconButton name="Download PDF" icon_path="/icon/running.svg" @click="downloadPDF" />
+            <IconButton name="Download SeekWords" icon_path="/icon/running.svg" @click="downloadPDF" />
+            <IconButton name="Download Vocabulary" icon_path="/icon/running.svg" @click="downloadVocabulary" />
         </div>
     </div>
 </template>
@@ -30,7 +31,7 @@ import axios from 'axios';
 import seedrandom from 'seedrandom';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { vocabulary, config_data } from '@/stores/counter';
+import { useVocabulary, useConfigData } from '@/stores/counter';
 import IconButton from '@/components/IconButton.vue';
 
 const vocabularyArray = ref<string[]>([]);
@@ -38,11 +39,11 @@ const wordSearchGrid = ref<string[][]>([]);
 const loading = ref(false);
 
 const rng = seedrandom(Date.now().toString());
-const VocabularyController = vocabulary();
-const APIurl = config_data().get_api_url();
+const VocabularyController = useVocabulary();
+const APIurl = useConfigData().getApiUrl();
 
 function generateHiraganaWordSearch(words: string[]): string[][] {
-    const size = 9;
+    const size = Number(VocabularyController.getSize());
     const grid: string[][] = Array.from({ length: size }, () => Array(size).fill(''));
     const hiraganaChars = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆゆよらりるれろわをんがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽっー';
 
@@ -162,18 +163,16 @@ const downloadPDF = async (): Promise<void> => {
     }, 0);
 };
 
-const downloadVocabulary = (vocabularyArray: any) => {
-    const textContent = vocabularyArray.join('\n'); // 配列を改行で結合
-    const blob = new Blob([textContent], { type: 'text/plain' }); // テキストファイルを作成
-    const url = URL.createObjectURL(blob); // BlobのURLを作成
-
-    const link = document.createElement('a'); // ダウンロード用リンクを作成
-    link.href = url;
-    link.download = 'vocabulary.txt'; // ファイル名を指定
-    document.body.appendChild(link); // リンクをDOMに追加
-    link.click(); // リンクをクリックしてダウンロードを開始
-    document.body.removeChild(link); // リンクを削除
-    URL.revokeObjectURL(url); // BlobのURLを解放
+const downloadVocabulary = () => {
+    const blob = new Blob([vocabularyArray.value.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vocabulary.txt'; // Change the file name as needed
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 };
 
 onMounted(async () => {
@@ -181,16 +180,17 @@ onMounted(async () => {
 });
 
 async function initializeBoardData() {
-    const size = 9;
+    // Get size from VocabularyController
+    const size = VocabularyController.getSize();
     const board = wordSearchGrid.value;
 
     // Get words from the existing vocabulary
     vocabularyArray.value = VocabularyController.getVocabularys().filter(word => /^[\u3040-\u309F]{2,5}$/.test(word));
     const selectedWords = vocabularyArray.value
         .sort(() => 0.5 - rng())
-        .slice(0, 9);
+        .slice(0, size); // Use size to limit selected words
 
-    // Generate the word search
+    // Generate the word search using the size obtained
     wordSearchGrid.value = generateHiraganaWordSearch(selectedWords);
 
     // Send board data to the API and process the response
@@ -252,7 +252,7 @@ td {
     display: grid;
     grid-template-columns: repeat(3, minmax(100px, 1fr));
     gap: 10px;
-    max-height: 300px;
+    max-height: 200px;
     max-width: 150%;
     overflow-y: auto;
     background-color: var(--color-button-icon);

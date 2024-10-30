@@ -2,8 +2,9 @@ import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 
 // Vocabulary Store
-export const vocabulary = defineStore('vocabulary', () => {
-  const vocabularys = ref<string[]>([""]);
+export const useVocabulary = defineStore('vocabulary', () => {
+  const vocabularys = ref<string[]>([]); // Changed initialization to an empty array
+  const size = ref<number>(7); // Use 'number' instead of 'Number'
 
   function addVocabularys(add_vocabularys: string[]) {
     if (add_vocabularys.length === 0) {
@@ -17,13 +18,22 @@ export const vocabulary = defineStore('vocabulary', () => {
     return vocabularys.value;
   }
 
-  return { addVocabularys, getVocabularys };
+  function setSize(num: number) { // Use 'number' instead of 'Number'
+    size.value = num;
+  }
+
+  function getSize(): number { // Use 'number' instead of 'Number'
+    return size.value;
+  }
+
+  return { addVocabularys, getVocabularys, setSize, getSize };
 });
 
 // Seek Words Store
-export const SeekWords = defineStore('seekwords', () => {
+export const useSeekWords = defineStore('seekwords', () => {
   const board = ref<string[][]>([]);
-  const seekwordsLength = ref<number>(9);
+  const vocabulary = useVocabulary(); // Access the Vocabulary store instance
+  const seekwordsLength = ref<number>(vocabulary.getSize());
 
   function createSeekWords() {
     if (seekwordsLength.value <= 0) {
@@ -43,15 +53,17 @@ export const SeekWords = defineStore('seekwords', () => {
     }
   }
 
-  return { createSeekWords };
+  return { createSeekWords, board }; // Returning board in case you need to access it
 });
 
-export const config_data = defineStore('config_data', () => {
-  const api_url = ref("http://127.0.0.1:8000")
+// Config Data Store
+export const useConfigData = defineStore('config_data', () => {
+  // const api_url = ref("http://127.0.0.1:8000");
+  const api_url = ref("https://work-seekwordscreator.onrender.com");
 
-  function get_api_url() {
-      return api_url.value
+  function getApiUrl() { // Use camelCase for function names
+    return api_url.value;
   }
 
-  return { get_api_url }
-})
+  return { getApiUrl };
+});
